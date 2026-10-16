@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How it works</title>
+<link rel="stylesheet" href="style/eweb.css">
+<style>
+  h1{font-size:46px;max-width:900px}
+  .sub{max-width:760px}
+  .flow{position:absolute;left:72px;right:72px;top:290px;display:grid;grid-template-columns:repeat(4,1fr);gap:34px;z-index:2}
+  .track{position:absolute;left:72px;right:72px;top:372px;height:1px;background:var(--ink);z-index:1;opacity:.35}
+  .flow .step{z-index:2}
+  .pulse{position:absolute;top:369px;left:72px;width:7px;height:7px;background:var(--blue);z-index:1;animation:run 3.2s linear 1.6s infinite}
+  @keyframes run{from{left:72px;opacity:0}8%{opacity:1}92%{opacity:1}to{left:1202px;opacity:0}}
+  .step{background:#fff;border:1px solid var(--line);padding:18px 20px;min-height:176px;position:relative}
+  .step:nth-child(1){box-shadow:7px 7px 0 var(--slate-l)}
+  .step:nth-child(2){box-shadow:7px 7px 0 var(--teal)}
+  .step:nth-child(3){box-shadow:7px 7px 0 var(--blue);border-color:var(--ink)}
+  .step:nth-child(4){box-shadow:7px 7px 0 var(--blue-l)}
+  .n{font:600 11px var(--mono);color:var(--blue);letter-spacing:.06em}
+  .step h2{font-size:21px;font-weight:600;line-height:1.14;letter-spacing:-.5px;margin:8px 0 8px}
+  .step p{font-size:14.5px;line-height:1.42;color:var(--char)}
+  .ex{position:absolute;left:72px;right:72px;top:528px;display:flex;align-items:center;gap:16px;z-index:2}
+  .ex .lab{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--grey);width:120px}
+  .pill{font:500 15px var(--mono);border:1px solid var(--ink);background:#fff;padding:9px 14px;color:var(--ink)}
+  .pill.o{border-color:var(--blue);color:var(--blue)}
+  .arrow{font:500 18px var(--mono);color:var(--grey)}
+</style>
+</head>
+<body data-foot="MIMO tablets">
+<div class="z">
+  <div class="eyebrow in1">How it works</div>
+  <h1 class="in2">One lookup turns text into coordinates.</h1>
+  <p class="sub in3">The enrichment runs while the data is collected. Nothing changes in the MIMO database.</p>
+</div>
+<div class="track"></div><div class="pulse"></div>
+<section class="flow">
+  <article class="step in3"><div class="n">01</div><h2>MIMO registry</h2><p>SQL database with country, city, site, building and room for every tablet.</p></article>
+  <article class="step in4"><div class="n">02</div><h2>Elastic Agent</h2><p>Reads the registry every 15 minutes and sends one document per tablet.</p></article>
+  <article class="step in5"><div class="n">03</div><h2>GeoNames lookup</h2><p>About 208,000 cities loaded once. Adds coordinates, country code and time zone to each document.</p></article>
+  <article class="step in6"><div class="n">04</div><h2>Kibana</h2><p>Map and dashboard, filtered by country, site or building.</p></article>
+</section>
+<div class="ex in6">
+  <span class="lab">Example</span>
+  <span class="pill">Munich, Germany</span><span class="arrow">&rarr;</span>
+  <span class="pill o">48.14, 11.57</span><span class="pill o">DE</span><span class="pill o">Europe/Berlin</span>
+</div>
+<script src="style/eweb.js"></script>
+<script src="/js/fuckslides.js"></script>
+</body>
+</html>

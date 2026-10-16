@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer challenge</title>
+<link rel="stylesheet" href="style/eweb.css">
+<style>
+  h1{font-size:46px;max-width:860px}
+  .sub{max-width:720px}
+  .cols{position:absolute;left:72px;right:72px;top:292px;display:grid;grid-template-columns:505px 1fr;gap:42px;z-index:2}
+  .pain{padding:26px 28px;box-shadow:8px 8px 0 var(--orange)}
+  .pain h2{font-size:30px;line-height:1.12;font-weight:600;letter-spacing:-.8px;margin-bottom:18px}
+  .pain p{font-size:17px;line-height:1.45;color:var(--char)}
+  .signals{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .signal{height:48px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;padding:0 16px;font-weight:600;color:var(--ink)}
+  .signal:nth-child(odd){box-shadow:5px 5px 0 var(--teal)}
+  .signal:nth-child(even){box-shadow:5px 5px 0 var(--blue-l)}
+  .lab{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--grey);margin-bottom:12px}
+</style>
+</head>
+<body data-foot="MIMO tablets">
+<div class="z">
+  <div class="eyebrow in1">Customer challenge</div>
+  <h1 class="in2">The registry knows where a tablet is, but only in words.</h1>
+  <p class="sub in3">Country and city are plain text. That is enough to list tablets, but not to draw them, group them by region or plan work by time zone.</p>
+</div>
+<section class="cols">
+  <article class="card pain in3">
+    <div class="tag">Current challenge</div>
+    <h2>Estate questions need a spreadsheet.</h2>
+    <p>Where are the tablets, how many per country, which building? The answers sit in a SQL database that nobody can see on a map.</p>
+  </article>
+  <div class="in4">
+    <div class="lab">What the registry holds today</div>
+    <div class="signals">
+      <div class="signal">Country</div>
+      <div class="signal">City</div>
+      <div class="signal">Site and building</div>
+      <div class="signal">Room</div>
+      <div class="signal">Capacity</div>
+      <div class="signal">Bookable</div>
+      <div class="signal">App version</div>
+      <div class="signal">Coordinates: none</div>
+    </div>
+  </div>
+</section>
+<script src="style/eweb.js"></script>
+<script src="/js/fuckslides.js"></script>
+</body>
+</html>

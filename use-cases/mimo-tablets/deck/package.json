@@ -1,0 +1,13 @@
+{
+  "name": "deck_mimo-tablets",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "serve": "fuckslides serve",
+    "pdf": "fuckslides pdf",
+    "gif": "fuckslides gif"
+  },
+  "devDependencies": {
+    "fuck-slides": "*"
+  }
+}

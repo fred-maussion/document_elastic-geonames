@@ -1,0 +1,56 @@
+# Step 2 - Verify.
+
+# 2.1  Lookup coverage for every city of the sample fleet (should return a row each).
+GET geonames-city-lookup/_search
+{
+  "size": 0,
+  "query": { "terms": { "city_key": [
+    "munich|DE", "madrid|ES", "london|GB", "paris|FR", "barcelona|ES",
+    "koeln|DE", "frankfurt am main|DE", "prague|CZ", "hamburg|DE", "vienna|AT",
+    "milan|IT", "berlin|DE", "chicago|US", "lisbon|PT", "lyon|FR",
+    "sao paulo|BR", "brussels|BE", "dublin|IE", "mumbai|IN", "toronto|CA",
+    "porto|PT", "boston|US", "singapore|SG", "zuerich|CH", "bordeaux|FR",
+    "montreal|CA", "pune|IN", "valencia|ES", "denver|US", "edinburgh|GB",
+    "sydney|AU", "turin|IT", "malaga|ES", "leeds|GB", "strasbourg|FR",
+    "cork|IE", "vancouver|CA", "osaka|JP", "raleigh|US", "curitiba|BR",
+    "brisbane|AU"
+  ] } },
+  "aggs": { "keys": { "terms": { "field": "city_key", "size": 100 } } }
+}
+
+# 2.2  Dry-run the enrichment on sample documents (aliases, suffixes and accents).
+POST _ingest/pipeline/metrics-sql-geonames-enrich/_simulate
+{
+  "docs": [
+    { "_source": { "sql": { "metrics": { "country": "Germany", "city": "Munich" } } } },
+    { "_source": { "sql": { "metrics": { "country": "Austria", "city": "Wien" } } } },
+    { "_source": { "sql": { "metrics": { "country": "Belgium", "city": "Brussels (Bruxelles)" } } } },
+    { "_source": { "sql": { "metrics": { "country": "Switzerland", "city": "Zurich (Zürich)" } } } },
+    { "_source": { "sql": { "metrics": { "country": "India", "city": "Mumbai (ex Bombay)" } } } },
+    { "_source": { "sql": { "metrics": { "country": "Germany", "city": "Köln" } } } }
+  ]
+}
+
+# 2.3  After the next metricbeat run (15 min): any misses?
+GET metrics-sql-default/_search
+{
+  "size": 0,
+  "query": { "term": { "tags": "geonames_no_match" } },
+  "aggs": {
+    "country": { "terms": { "field": "sql.metrics.country" } },
+    "city":    { "terms": { "field": "sql.metrics.city", "size": 50 } }
+  }
+}
+
+# 2.4  And hits per city on the map field:
+GET metrics-sql-default/_search
+{
+  "size": 0,
+  "query": { "range": { "@timestamp": { "gte": "now-30m" } } },
+  "aggs": {
+    "by_city": {
+      "terms": { "field": "sql.metrics.city", "size": 100 },
+      "aggs": { "status": { "terms": { "field": "sql.metrics.status" } } }
+    }
+  }
+}

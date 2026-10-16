@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Demo 1</title>
+<link rel="stylesheet" href="style/eweb.css">
+<style>
+  h1{font-size:44px;max-width:1080px}
+  .sub{max-width:760px}
+  .stage{position:absolute;left:72px;right:72px;top:262px;display:grid;grid-template-columns:310px 1fr 310px;gap:24px;align-items:stretch;z-index:2}
+  .box{background:#fff;border:1px solid var(--line);padding:20px 24px;min-height:230px}
+  .pain{box-shadow:8px 8px 0 var(--orange)}
+  .elastic{box-shadow:8px 8px 0 var(--blue)}
+  .benefit{box-shadow:8px 8px 0 var(--teal)}
+  .box h2{font-size:25px;font-weight:600;line-height:1.12;letter-spacing:-.7px;margin:10px 0}
+  .box p{font-size:16px;line-height:1.42;color:var(--char)}
+  .signals{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+  .signal{border:1px solid var(--line);padding:8px 9px;font:600 10.5px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);background:#fff;position:relative;overflow:hidden}
+  .signal::after{content:'';position:absolute;left:-30%;top:0;width:30%;height:100%;background:var(--blue-l);opacity:.8;animation:signalSweep 2.4s ease-in-out infinite}
+  .signal:nth-child(2)::after{animation-delay:.25s}.signal:nth-child(3)::after{animation-delay:.5s}.signal:nth-child(4)::after{animation-delay:.75s}
+  @keyframes signalSweep{0%{left:-35%;opacity:0}18%{opacity:.75}60%{left:105%;opacity:.75}100%{left:105%;opacity:0}}
+  .stats{position:absolute;left:72px;right:72px;top:560px;display:flex;gap:72px;align-items:flex-end;z-index:2}
+  .st{display:flex;align-items:flex-end;gap:12px}
+  .st .stat{font-size:64px}
+  .st .l{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--grey);padding-bottom:10px}
+  .asof{margin-left:auto;font:400 11px var(--mono);color:var(--grey-l);padding-bottom:12px}
+</style>
+</head>
+<body data-foot="MIMO tablets">
+<div class="z">
+  <div class="eyebrow in1">Demo 01 · lead story</div>
+  <h1 class="in2">Go from the world to a single room.</h1>
+  <p class="sub in3">The workplace team wants to know where the tablets are, how many, and in which building, without asking for an export.</p>
+</div>
+<section class="stage">
+  <article class="box pain in3">
+    <div class="tag">Pain</div>
+    <h2>Estate questions need a spreadsheet.</h2>
+    <p>The registry lists tablets, but nobody can see the estate by country, city or building at a glance.</p>
+  </article>
+  <article class="box elastic in4">
+    <div class="tag">Elastic approach</div>
+    <h2>Drill down on one live map.</h2>
+    <p>Country shading at world level, city bubbles when you zoom in, then buildings and a room table, filtered by country or site.</p>
+    <div class="signals">
+      <div class="signal">World map</div>
+      <div class="signal">Country filter</div>
+      <div class="signal">Building list</div>
+      <div class="signal">Room table</div>
+    </div>
+  </article>
+  <article class="box benefit in5">
+    <div class="tag">Benefit</div>
+    <h2>One view that stays current.</h2>
+    <p>The map refreshes every 15 minutes from the same database. No manual geocoding, no export.</p>
+  </article>
+</section>
+<div class="stats in6">
+  <div class="st"><span class="stat">689</span><span class="l">Tablets</span></div>
+  <div class="st"><span class="stat">41</span><span class="l">Cities</span></div>
+  <div class="st"><span class="stat">18</span><span class="l">Countries</span></div>
+</div>
+<script src="style/eweb.js"></script>
+<script src="/js/fuckslides.js"></script>
+</body>
+</html>

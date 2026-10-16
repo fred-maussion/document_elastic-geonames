@@ -1,0 +1,122 @@
+# Step 1 - Wire the enrichment into the metrics-sql data stream.
+#
+# 1.0  CHECK FIRST what already exists / which template applies. Do not overwrite blindly.
+GET _component_template/metrics-sql@custom
+GET _ingest/pipeline/metrics-sql@custom
+GET _index_template/_simulate_index/metrics-sql-default
+
+# 1.1  Mapping: geo_point for the new location field.
+PUT _component_template/metrics-sql@custom
+{
+  "template": {
+    "mappings": {
+      "properties": {
+        "sql": {
+          "properties": {
+            "metrics": {
+              "properties": {
+                "location":     { "type": "geo_point" },
+                "country_code": { "type": "keyword" },
+                "geonameid":    { "type": "long" },
+                "timezone":     { "type": "keyword" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# 1.2  Enrichment pipeline: normalise country/city from the SQL source, look up GeoNames.
+PUT _ingest/pipeline/metrics-sql-geonames-enrich
+{
+  "description": "Adds sql.metrics.location (geo_point) from GeoNames using sql.metrics.city + sql.metrics.country.",
+  "field_access_pattern": "classic",
+  "processors": [
+    {
+      "script": {
+        "description": "Build the lookup key '<city>|<ISO country code>' from the free-text SQL values.",
+        "source": """
+          def m = ctx.sql?.metrics;
+          if (m == null || m.city == null || m.country == null) {
+            return;
+          }
+          // country name (as stored in the MIMO DB) -> ISO 3166-1 alpha-2. Extend as new countries appear.
+          Map countries = [
+            'Australia': 'AU', 'Austria': 'AT', 'Belgium': 'BE', 'Brazil': 'BR', 'Canada': 'CA',
+            'Czech Republic': 'CZ', 'France': 'FR', 'Germany': 'DE', 'India': 'IN', 'Ireland': 'IE',
+            'Italy': 'IT', 'Japan': 'JP', 'Portugal': 'PT', 'Singapore': 'SG', 'Spain': 'ES',
+            'Switzerland': 'CH', 'United Kingdom': 'GB', 'United States': 'US'
+          ];
+          // MIMO spelling (lowercase) -> GeoNames spelling (lowercase).
+          Map aliases = ['wien': 'vienna', 'praha': 'prague', 'milano': 'milan', 'torino': 'turin', 'zurich': 'zürich'];
+
+          String city = m.city.toString();
+          int paren = city.indexOf('(');           // "Brussels (Bruxelles)", "Mumbai (ex Bombay)"
+          if (paren > 0) {
+            city = city.substring(0, paren);
+          }
+          city = city.trim().toLowerCase();
+          if (aliases.containsKey(city)) {
+            city = aliases.get(city);
+          }
+          String cc = countries.get(m.country.toString());
+          if (cc != null) {
+            ctx['_geo_key'] = city + '|' + cc;
+          }
+        """
+      }
+    },
+    {
+      "enrich": {
+        "description": "GeoNames lookup",
+        "policy_name": "geonames-city-lookup-policy",
+        "field": "_geo_key",
+        "target_field": "_geo",
+        "max_matches": 1,
+        "ignore_missing": true
+      }
+    },
+    {
+      "script": {
+        "description": "Copy the match onto sql.metrics.*, or tag the miss so it is easy to find.",
+        "source": """
+          if (ctx['_geo_key'] == null) {
+            return;
+          }
+          if (ctx['_geo'] != null) {
+            ctx.sql.metrics.location = ctx['_geo'].location;
+            ctx.sql.metrics.country_code = ctx['_geo'].country_code;
+            ctx.sql.metrics.geonameid = ctx['_geo'].geonameid;
+            ctx.sql.metrics.timezone = ctx['_geo'].timezone;
+          } else {
+            if (ctx.tags == null) {
+              ctx.tags = new ArrayList();
+            }
+            ctx.tags.add('geonames_no_match');
+          }
+        """
+      }
+    },
+    {
+      "remove": {
+        "field": ["_geo_key", "_geo"],
+        "ignore_missing": true
+      }
+    }
+  ]
+}
+
+# 1.3  Hook into the data stream through the @custom pipeline.
+#      (Only valid if 1.0 shows the index template calls metrics-sql@custom. If it does not, see README "Fallback".)
+PUT _ingest/pipeline/metrics-sql@custom
+{
+  "description": "Local customisations for metrics-sql",
+  "processors": [
+    { "pipeline": { "name": "metrics-sql-geonames-enrich" } }
+  ]
+}
+
+# 1.4  New mapping only applies to new backing indices -> roll over now.
+POST metrics-sql-default/_rollover

@@ -1,0 +1,13 @@
+# Step 4 - Enrich policy over the lookup index. Re-run the _execute call after every reload
+# of geonames-city-lookup (policies are snapshots).
+
+PUT _enrich/policy/geonames-city-lookup-policy
+{
+  "match": {
+    "indices": "geonames-city-lookup",
+    "match_field": "city_key",
+    "enrich_fields": ["location", "country_code", "geonameid", "population", "timezone", "city"]
+  }
+}
+
+POST _enrich/policy/geonames-city-lookup-policy/_execute

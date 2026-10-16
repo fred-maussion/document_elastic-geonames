@@ -1,0 +1,83 @@
+# Step 2 - Ingest pipeline that parses one raw GeoNames row (tab-delimited, in "message")
+# and reshapes it to the geonames-city-lookup mapping.
+#
+# city_key is multi-valued: "<name>|<CC>" and "<asciiname>|<CC>", lowercased, so that both
+# "köln|DE" and "koeln|DE" match. _id is set to the ascii key, so when the file is loaded
+# sorted by ascending population (see 03-load-geonames.sh) the most populated city wins.
+
+PUT _ingest/pipeline/geonames-city-lookup-parse
+{
+  "description": "Parses a raw tab-delimited GeoNames 'geoname' table row (cities500.txt / cities15000.txt / allCountries.txt) supplied in 'message' and reshapes it to the geonames-city-lookup mapping.",
+  "field_access_pattern": "classic",
+  "processors": [
+    {
+      "csv": {
+        "ignore_missing": true,
+        "field": "message",
+        "trim": true,
+        "separator": """	""",
+        "quote": "\u0001",
+        "target_fields": [
+          "geonameid", "name", "asciiname", "alternatenames", "latitude", "longitude",
+          "feature_class", "feature_code", "country_code", "cc2",
+          "admin1_code", "admin2_code", "admin3_code", "admin4_code",
+          "population", "elevation", "dem", "timezone", "modification_date"
+        ]
+      }
+    },
+    {
+      "script": {
+        "description": "Coerce types, build geo_point and the multi-valued city_key, set _id.",
+        "source": """
+          if (ctx.geonameid != null) {
+            ctx.geonameid = Long.parseLong(ctx.geonameid);
+          }
+          if (ctx.latitude != null && ctx.longitude != null) {
+            ctx.location = ['lat': Double.parseDouble(ctx.latitude), 'lon': Double.parseDouble(ctx.longitude)];
+          }
+          if (ctx.population != null && ctx.population != '') {
+            ctx.population = Long.parseLong(ctx.population);
+          } else {
+            ctx.remove('population');
+          }
+          if (ctx.name != null) {
+            ctx.city = ctx.name;
+          }
+          if (ctx.asciiname != null) {
+            ctx.city_ascii = ctx.asciiname;
+          }
+          if (ctx.name != null && ctx.asciiname != null && ctx.country_code != null) {
+            Set keys = new LinkedHashSet();
+            keys.add(ctx.name.toLowerCase() + '|' + ctx.country_code);
+            keys.add(ctx.asciiname.toLowerCase() + '|' + ctx.country_code);
+            ctx.city_key = new ArrayList(keys);
+            ctx['_id'] = ctx.asciiname.toLowerCase() + '|' + ctx.country_code;
+          }
+        """
+      }
+    },
+    {
+      "remove": {
+        "field": [
+          "message", "name", "asciiname", "alternatenames", "latitude", "longitude",
+          "feature_class", "feature_code", "cc2",
+          "admin1_code", "admin2_code", "admin3_code", "admin4_code",
+          "elevation", "dem", "modification_date"
+        ],
+        "ignore_missing": true
+      }
+    }
+  ]
+}
+
+# Quick test with a real cities500 row (Köln):
+POST _ingest/pipeline/geonames-city-lookup-parse/_simulate
+{
+  "docs": [
+    {
+      "_source": {
+        "message": "2886242\tKöln\tKoeln\tAugusta Ubiorum,CGN,Cologna,Cologne,Colonha,Colonia,Colonia Agrippina,Colonia Agrippinensis,Colonia Claudia Ara Agrippinensium,Colònia,Colônia,Cołogna,Culonia,Cwlen,K'oln,Kel'n,Keln,Kelnas,Kelne,Kelni,Keulen,Kiolns,Kjol'n,Koelle,Koeln,Kol'n,Kolin nad Rynem,Kolin nad Rynom,Koloin,Kolon,Kolonia,Kolonjo,Kolín nad Rýnem,Kolín nad Rýnom,Kyoln,Këlni,Kölle,Köln,Lungsod ng Cologne,Oppidum Ubiorum,gu long,kalana,kalon,ke long,kerun,kholoy,kln,klwn,koelleun,koln,kolon,kwln,kwlwn,kwlwnya,kyolna,qln,qlwnyt,quluniat,Ķelne,Κολωνία,Келн,Кельн,Кьолн,Кёльн,Кӧльн,Көлн,Քյոլն,קלן,קעלן,قلونية,قُلُونِيَة,كولن,كولونيا,کلن,کلون,کولون,क्योल्न,ਕਲਨ,கோல்ன்,కొలోన్,ಕಲೋನ್,โคโลญ,კელნი,ኮልን,ケルン,古龍,科隆,쾰른\t50.93333\t6.95\tP\tPPLA2\tDE\t\t07\t053\t05315\t05315000\t1024621\t\t58\tEurope/Berlin\t2026-05-06"
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# Step 1 - Lookup index holding one row per (city, country) from GeoNames.
+# Run in Kibana > Dev Tools.
+
+PUT geonames-city-lookup
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "city":         { "type": "keyword" },
+      "city_ascii":   { "type": "keyword" },
+      "city_key":     { "type": "keyword" },
+      "country_code": { "type": "keyword" },
+      "geonameid":    { "type": "long" },
+      "location":     { "type": "geo_point" },
+      "population":   { "type": "long" },
+      "timezone":     { "type": "keyword" }
+    }
+  }
+}
